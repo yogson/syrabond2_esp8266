@@ -1,0 +1,16 @@
+{
+      "mqtt": {
+        "channel": "switch"
+              },
+      "plugins": [
+        {
+            "module": "switch",
+            "pin": 5,
+            "led": 15,
+            "button": null,
+            "level": 1
+        }
+      ],
+  "led": 15
+
+}

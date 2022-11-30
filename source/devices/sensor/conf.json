@@ -1,0 +1,20 @@
+{
+  "mqtt": {
+    "channel": "sensor"
+  },
+  "plugins": [
+        {
+          "module": "si",
+          "scl_pin": 5,
+          "sda_pin": 4,
+          "mismatch_t": 0,
+          "mismatch_h": 0
+        }
+      ],
+  "interval": 60,
+  "period": 10,
+  "debug": false,
+  "inited": false,
+  "led": null,
+
+}
