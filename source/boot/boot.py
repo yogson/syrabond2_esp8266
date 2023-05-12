@@ -82,7 +82,7 @@ print('Waiting ' + str(t) + ' sec.')  # wait randomized time to balance the load
 sleep(t)
 
 led = None
-config = pauchok.get_config("global.json", "conf.json")
+config = pauchok.get_config("global.json", "conf.json", "network.json")
 
 if not config:
     print("Couldn't load any config")
@@ -95,6 +95,10 @@ if config.get('led') is not None:
     ON = int(level)
     OFF = abs(ON - 1)
     led.value(OFF)
+
+if config.get("ssid") and config.get("pass") and not config.get("network"):
+    config["network"]["ssid"] = config.pop("ssid")
+    config["network"]["pass"] = config.pop("pass")
 
 connect(config.get("network", {}).get("ssid", "wifi"), config.get("network", {}).get("pass", ""))
 

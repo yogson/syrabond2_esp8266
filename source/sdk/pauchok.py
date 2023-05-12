@@ -13,6 +13,7 @@ class Mqttsender:
         self.topic_ping = mqtt['object'] + '/globalping'
         self.topic_lastwill = mqtt['object'] + '/status/' + self.uniqid
         self.topic_management = mqtt['object'] + '/management/' + self.uniqid
+        self.topic_conf = mqtt['object'] + '/' + self.uniqid + '/conf'
         self.topic_state = mqtt['object'] + '/state/' + self.uniqid
         self.keepalive = int(mqtt['keepalive'])
         self.ip = ip
@@ -50,6 +51,7 @@ class Mqttsender:
         try:
             self.subscribe(self.topic_ping)
             self.subscribe(self.topic_management)
+            self.subscribe(self.topic_conf)
             return False
         except Exception as e:
             print("Could not subscribe")
@@ -57,8 +59,8 @@ class Mqttsender:
             return True
 
     def callback(self, topic, msg):
-        if topic.decode() in (self.topic_ping, self.topic_management):
-            self.manage(msg.decode())
+        if topic.decode() in (self.topic_ping, self.topic_management, self.topic_conf):
+            self.manage(topic.decode(), msg.decode())
         else:
             self.message_queue.get(topic, {}).get('callback')(topic, msg)
 
@@ -72,7 +74,7 @@ class Mqttsender:
             if not isinstance(message, bytes):
                 message = message.encode()
             self.c.publish(topic, message, retain=retain)
-            print ('Data sent')
+            print('Data sent')
 
         except Exception as e:
             print("Could not send data")
@@ -94,7 +96,7 @@ class Mqttsender:
                 else:
                     self.message_queue[topic]['callback'] = sub_cb
             self.c.subscribe(topic)
-            print ('Subscribed: ' + topic.decode())
+            print('Subscribed: ' + topic.decode())
             return False
 
         except Exception as e:
@@ -105,25 +107,38 @@ class Mqttsender:
     def send_ip(self):
         self.send(self.topic_lastwill, str({"ip": self.ip}), retain=False)
 
-    def manage(self, command):
+    def manage(self, topic, command):
         print('Maintenance command received')
         if command == self.ping:
             self.send_ip()
-        if command == self.repl_on:
+        elif command == self.repl_on:
             import webrepl
             webrepl.start()
-        if command == self.repl_off:
+        elif command == self.repl_off:
             print('Turning repl off')
             import webrepl
             webrepl.stop()
-        if command == self.reboot:
+        elif command == self.reboot:
             print('Rebooting...')
             import machine as m
             m.reset()
-        if command == self.init:
+        elif command == self.init:
             conf = get_config('conf.json')
             conf['inited'] = '1'
             write_config('conf.json', conf)
+        elif topic == self.topic_conf:
+            try:
+                conf_data = json.loads(command)
+                update_conf(conf_data)
+            except:
+                print("Couldn't update config ", command)
+
+
+def update_conf(conf_update: dict):
+    conf_file = "conf.json"
+    config = get_config(conf_file)
+    config.update(conf_update)
+    write_config(conf_file, config)
 
 
 def get_config(*args):
