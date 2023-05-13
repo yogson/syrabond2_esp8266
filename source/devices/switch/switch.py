@@ -7,7 +7,7 @@ from time import ticks_diff
 
 class Plugin:
 
-    def __init__(self, mqtt=None, topic=None, **kwargs):
+    def __init__(self, *, config_map, **kwargs):
         self.pin = Pin(kwargs.get('pin', 12), Pin.OUT)
         self.led = Pin(kwargs.get('led', 13), Pin.OUT)
         if kwargs.get('button') is not None:
@@ -21,10 +21,9 @@ class Plugin:
         self.OFF = abs(self.ON-1)
         self.start = 0
 
-        self.mqtt = None
-        self.topic = None
-        if mqtt and topic:
-            self.set_broker(mqtt, topic)
+        self.mqtt = config_map["mqtt"]
+        self.topic = config_map["object"] + "/" + kwargs.get("channel", kwargs.get("module")) + "/" + config_map["uid"]
+        self.mqtt.subscribe(self.topic, sub_cb=self.callback)
 
     def set_broker(self, mqtt, topic):
         self.mqtt = mqtt
@@ -32,7 +31,7 @@ class Plugin:
         self.mqtt.subscribe(self.topic, sub_cb=self.callback)
     
     def callback(self, topic, msg):
-        print('Got '+msg.decode()+' in '+topic.decode())
+        print('Got '+msg.decode()+' in '+topic)
         if msg == b"on":
             self.pin.value(self.ON)
             self.led.value(0)
@@ -68,5 +67,11 @@ class Plugin:
             elif self.pin.value() == self.OFF:
                 self.mqtt.send(self.topic, 'off')
             self.change_flag = False
+
+    def run(self):
+        while True:
+            self.update_site()
+            print('Waiting for message in topic %s...' % self.topic)
+            self.mqtt.c.wait_msg()
 
 

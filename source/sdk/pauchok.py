@@ -2,6 +2,8 @@ from umqtt.robust import MQTTClient
 import ujson as json
 from time import sleep
 
+from const import CONFIGS
+
 
 class Mqttsender:
 
@@ -59,10 +61,20 @@ class Mqttsender:
             return True
 
     def callback(self, topic, msg):
-        if topic.decode() in (self.topic_ping, self.topic_management, self.topic_conf):
-            self.manage(topic.decode(), msg.decode())
-        else:
-            self.message_queue.get(topic, {}).get('callback')(topic, msg)
+        topic = topic.decode()
+        print("Pauchok got new message in", topic)
+        if topic in (self.topic_ping, self.topic_management, self.topic_conf):
+            return self.manage(topic, msg.decode())
+        if topic in self.message_queue:
+            return self.message_queue[topic].get("callback")(topic, msg)
+
+        topic_parts = topic.split("/")
+        for i in reversed(range(1, len(topic_parts))):
+            wildcard_topic = "/".join(topic_parts[:i]) + "/#"
+            if wildcard_topic in self.message_queue:
+                return self.message_queue[wildcard_topic].get("callback")(topic, msg)
+
+        print("Message unhandled: ", msg.decode())
 
     def send(self, topic, message, retain=True):
         is_error = False
@@ -84,31 +96,26 @@ class Mqttsender:
             return is_error
 
     def subscribe(self, topic, sub_cb=None):
-        try:
-            if not isinstance(topic, bytes):
-                topic = topic.encode()
-            if sub_cb:
-                if topic not in self.message_queue:
-                    self.message_queue[topic] = {
-                        'callback': sub_cb,
-                        'messages': []
-                    }
-                else:
-                    self.message_queue[topic]['callback'] = sub_cb
-            self.c.subscribe(topic)
-            print('Subscribed: ' + topic.decode())
-            return False
-
-        except Exception as e:
-            print("Could not subscribe")
-            print(e)
-            return True
+        if sub_cb:
+            if topic not in self.message_queue:
+                self.message_queue[topic] = {
+                    'callback': sub_cb,
+                    'messages': []
+                }
+            else:
+                self.message_queue[topic]['callback'] = sub_cb
+        self.c.subscribe(topic.encode())
+        print('Subscribed: ' + topic)
 
     def send_ip(self):
         self.send(self.topic_lastwill, str({"ip": self.ip}), retain=False)
 
+    def send_config(self):
+        config = get_config(*CONFIGS)
+        self.send(self.topic_lastwill, json.dumps(config), retain=False)
+
     def manage(self, topic, command):
-        print('Maintenance command received')
+        print('Maintenance command received:', topic)
         if command == self.ping:
             self.send_ip()
         elif command == self.repl_on:
@@ -126,12 +133,19 @@ class Mqttsender:
             conf = get_config('conf.json')
             conf['inited'] = '1'
             write_config('conf.json', conf)
+        elif command == self.get_state:
+            self.send_config()
         elif topic == self.topic_conf:
-            try:
-                conf_data = json.loads(command)
-                update_conf(conf_data)
-            except:
-                print("Couldn't update config ", command)
+            apply_conf(command)
+
+
+def apply_conf(conf: str):
+    try:
+        print("Applying config", conf)
+        conf_data = json.loads(conf)
+        update_conf(conf_data)
+    except:
+        print("Couldn't update config ", conf)
 
 
 def update_conf(conf_update: dict):

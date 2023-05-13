@@ -1,18 +1,15 @@
 import machine
+from time import sleep
 
-from sdk.base import mqttsender, debug, plugins, topic
+from base import plugins, CONFIG_MAP
 
 
-if 'switch' in plugins:
+if not CONFIG_MAP["debug"]:
 
-    plugins['switch'].set_broker(mqttsender, topic)
-
-    if not debug:
+    for name, plugin in plugins.items():
+        print("Running plugin", name)
         try:
-            while True:
-                plugins['switch'].update_site()
-                print('Waiting for message in topic %s...' % plugins['switch'].topic)
-                mqttsender.c.wait_msg()
-
+            plugin.run()
         finally:
+            sleep(30)
             machine.reset()

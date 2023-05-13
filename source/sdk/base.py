@@ -4,6 +4,7 @@ import machine
 
 import pauchok
 
+from const import CONFIGS
 
 sta_if = network.WLAN(network.STA_IF)
 netconf = 0
@@ -12,7 +13,7 @@ while not netconf:
         netconf = sta_if.ifconfig()
 ip = netconf[0]
 
-config = pauchok.get_config('global.json', 'conf.json')
+config = pauchok.get_config(*CONFIGS)
 mqtt = config.get('mqtt')
 
 plugin_configs = config.get('plugins')
@@ -27,17 +28,23 @@ led.value(abs(led.value() - 1)) if led else None
 
 mqttsender = pauchok.Mqttsender(mqtt, ip, uid)
 mqttsender.connect()
-topic = mqtt.get('object', 'myHome') + '/' + mqtt.get('channel', 'resource') + '/' + uid
-mqttsender.send(mqttsender.topic_lastwill, str(
-    {'uid': uid, 'channel': mqtt.get('channel', 'resource'), "ip": ip, 'topic': topic}), retain=False)
+mqttsender.send(mqttsender.topic_lastwill, str({'uid': uid, "ip": ip}), retain=False)
+
+CONFIG_MAP = {
+    "object": mqtt.get('object', 'myHome'),
+    "mqtt": mqttsender,
+    "uid": uid,
+    "led": led,
+    "ip": ip,
+    "debug": debug
+}
 
 del mqtt
-
 plugins = {}
 
 for plugin_conf in plugin_configs:
     module = __import__(plugin_conf.get('module'))
-    plugin_inst = module.Plugin(**plugin_conf)
+    plugin_inst = module.Plugin(**plugin_conf, config_map=CONFIG_MAP)
     plugins.update(
         {plugin_conf.get('module'): plugin_inst}
     )

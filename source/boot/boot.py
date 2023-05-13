@@ -5,7 +5,7 @@ from uos import urandom as rnd
 import network
 from time import sleep
 
-import sdk.pauchok as pauchok
+import pauchok as pauchok
 
 
 def start_repl():
@@ -77,10 +77,6 @@ def connect(ssid, password):
         led.value(ON)
 
 
-t = int.from_bytes(rnd(1), 'little') // 25 + 1
-print('Waiting ' + str(t) + ' sec.')  # wait randomized time to balance the load
-sleep(t)
-
 led = None
 config = pauchok.get_config("global.json", "conf.json", "network.json")
 
@@ -88,6 +84,11 @@ if not config:
     print("Couldn't load any config")
     start_management_interface()
     machine.reset()
+
+if config.get("wait", False) is True:
+    t = int.from_bytes(rnd(1), 'little') // 25 + 1
+    print('Waiting ' + str(t) + ' sec.')  # wait randomized time to balance the load
+    sleep(t)
 
 if config.get('led') is not None:
     led = machine.Pin(int(config['led']), machine.Pin.OUT)
@@ -97,13 +98,13 @@ if config.get('led') is not None:
     led.value(OFF)
 
 if config.get("ssid") and config.get("pass") and not config.get("network"):
+    config["network"] = {}
     config["network"]["ssid"] = config.pop("ssid")
     config["network"]["pass"] = config.pop("pass")
 
 connect(config.get("network", {}).get("ssid", "wifi"), config.get("network", {}).get("pass", ""))
 
 if config.get('repl'):
-    print('starting webrepl cuz configured...')
     start_repl()
 
 gc.collect()
