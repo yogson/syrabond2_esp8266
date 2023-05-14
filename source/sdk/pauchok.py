@@ -1,6 +1,7 @@
-from umqtt.robust import MQTTClient
+from umqtt.simple import MQTTClient
 import ujson as json
 from time import sleep
+import uasyncio
 
 from const import CONFIGS
 
@@ -30,23 +31,26 @@ class Mqttsender:
 
         # ------- management commands ----------
         # TODO dehardcode maintenance topics and keywords!
-        self.ping = 'PING'
+        self._cmd_ping = 'PING'
         self.repl_on = 'ZAVULON'
         self.repl_off = 'ISAAK'
         self.reboot = 'ZARATUSTRA'
         self.get_state = 'STATE'
         self.init = 'INITIALIZE'
 
-    def connect(self):
+    def _connect(self):
         while not self.connected:
             try:
                 print('Connecting as ', self.uniqid, '...')
                 self.connected = self.c.connect(clean_session=self.clean_session)
                 print('Broker at ' + self.server + ' connected')
-                self.management_subscribe()
             except Exception as e:
                 print('Connecting error: ', e)
                 sleep(5)
+
+    def connect(self):
+        self._connect()
+        self.management_subscribe()
 
     def management_subscribe(self):
         print('Subscribing maintenance topics...')
@@ -116,7 +120,7 @@ class Mqttsender:
 
     def manage(self, topic, command):
         print('Maintenance command received:', topic)
-        if command == self.ping:
+        if command == self._cmd_ping:
             self.send_ip()
         elif command == self.repl_on:
             import webrepl
@@ -137,6 +141,22 @@ class Mqttsender:
             self.send_config()
         elif topic == self.topic_conf:
             apply_conf(command)
+
+    def check_msg(self):
+        try:
+            self.c.check_msg()
+        except OSError:
+            self.connected = False
+            self._connect()
+            self.c.check_msg()
+
+    def ping_broker(self):
+        self.c.ping()
+
+    async def heartbit(self):
+        while True:
+            self.ping_broker()
+            await uasyncio.sleep(self.keepalive // 4)
 
 
 def apply_conf(conf: str):
