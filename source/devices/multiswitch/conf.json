@@ -15,10 +15,10 @@
       ],
  "mqtt": {
           "keepalive": "60",
-          "object": "jikia",
-          "pass": "FvmYvzW8648ZMPm8",
-          "server": "mqtt.psycotro.pics",
-          "user": "dev"
+          "object": "-",
+          "pass": "-",
+          "server": "-",
+          "user": "-"
  },
  "repl": true,
  "sleep": "1",
