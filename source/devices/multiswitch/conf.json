@@ -1,0 +1,25 @@
+{"debug": "",
+ "inited": "",
+ "led": 13,
+ "plugins": [
+        {
+            "module": "relay",
+            "channel": "switch",
+            "relays": [
+              {"button": "0", "level": "1", "name": "1", "pin": "12"},
+              {"button": "9", "level": "1", "name": "2", "pin": "5"},
+              {"button": "10", "level": "1", "name": "3", "pin": "4"},
+              {"button": "14", "level": "1", "name": "4", "pin": "15"}
+            ]
+        }
+      ],
+ "mqtt": {
+          "keepalive": "60",
+          "object": "jikia",
+          "pass": "FvmYvzW8648ZMPm8",
+          "server": "mqtt.psycotro.pics",
+          "user": "dev"
+ },
+ "repl": true,
+ "sleep": "1",
+ "wait": false}
