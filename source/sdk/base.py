@@ -28,7 +28,7 @@ led.value(abs(led.value() - 1)) if led else None
 
 mqttsender = pauchok.Mqttsender(mqtt, ip, uid)
 mqttsender.connect()
-mqttsender.send(mqttsender.topic_lastwill, str({'uid': uid, "ip": ip}), retain=False)
+mqttsender.send(mqttsender.topic_lastwill, str({'uid': uid, "ip": ip, "channel": 1}), retain=False)
 
 CONFIG_MAP = {
     "object": mqtt.get('object', 'myHome'),
