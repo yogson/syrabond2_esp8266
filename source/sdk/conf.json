@@ -1,0 +1,9 @@
+{
+  "plugins": [
+      ],
+  "interval": 60,
+  "period": 10,
+  "debug": false,
+  "inited": false,
+  "led": null
+}

@@ -1,11 +1,13 @@
 import uasyncio
 
+from pauchok import Pauchok
+
 
 class BaseSensor:
 
-    def __init__(self, *, config_map, **kwargs):
-        self.topic = config_map["object"] + "/" + kwargs.get("channel", kwargs.get("module")) + "/" + config_map["uid"]
-        self.mqtt = config_map["mqtt"]
+    def __init__(self, *args, **kwargs):
+        self.topic = Pauchok.mqtt.object + "/" + kwargs.get("channel", kwargs.get("module")) + "/" + Pauchok.mqtt.uniqid + "/"
+        self.mqtt = Pauchok.mqtt
         self.interval = kwargs.get("interval")
         self.period = kwargs.get("period")
         self.diff_percentage = kwargs.get("percentage", 1)
@@ -26,8 +28,10 @@ class BaseSensor:
     async def run(self):
         n = self.period
         while 1:
+            if not Pauchok.network.ip:
+                await uasyncio.sleep(1)
+                continue
             self.check_messages()
-
             try:
                 readings: dict = self.do()
                 if not readings:

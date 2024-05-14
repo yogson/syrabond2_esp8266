@@ -1,15 +1,5 @@
 {
   "plugins": [
-        {
-          "module": "si",
-          "channel": "sensor",
-          "scl_pin": 5,
-          "sda_pin": 4,
-          "mismatch_t": 0,
-          "mismatch_h": 0,
-          "interval": 60,
-          "period": 10
-        },
             {
           "module": "analog",
           "channel": "sensor",
