@@ -28,7 +28,7 @@ class BaseSensor:
     async def run(self):
         n = self.period
         while 1:
-            if not Pauchok.network.ip:
+            if not self.mqtt.connected:
                 await uasyncio.sleep(1)
                 continue
             self.check_messages()
