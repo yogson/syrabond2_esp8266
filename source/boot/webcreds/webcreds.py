@@ -2,15 +2,11 @@ __version__ = "0.1"
 
 from time import sleep
 import sys
-
-try:
-    import usocket as socket
-    import ujson as json
-    import machine
-    import network
-except:
-    import socket
-    import json
+import usocket as socket
+import ujson as json
+import machine
+import network
+import uasyncio
 
 
 class Http:
@@ -238,13 +234,16 @@ def try_to_connect(ssid, pwd):
     return True
 
 
-if __name__ == '__main__':
+async def run_webcreds_server():
+    try:
+        import webcreds
+    except ImportError:
+        return
+    sta = network.WLAN(network.STA_IF)
     serv = Http()
-    while True:
+    while not sta.isconnected():
         serv.get_request()
         if serv.raw_requestline:
             serv.parse_request()
             serv.handle_request()
-        sleep(1)
-    serv.s.close()
-    serv.server.close()
+        await uasyncio.sleep(0.1)

@@ -1,5 +1,6 @@
 from machine import Pin
 import machine
+import uasyncio
 from time import sleep
 from time import ticks_ms
 from time import ticks_diff
@@ -68,10 +69,11 @@ class Plugin:
                 self.mqtt.send(self.topic, 'off')
             self.change_flag = False
 
-    def run(self):
+    async def run(self):
+        print('Waiting for message in topic %s...' % self.topic)
         while True:
             self.update_site()
-            print('Waiting for message in topic %s...' % self.topic)
-            self.mqtt.c.wait_msg()
+            self.mqtt.check_msg()
+            await uasyncio.sleep(0.5)
 
 

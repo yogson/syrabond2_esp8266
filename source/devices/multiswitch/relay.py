@@ -2,16 +2,15 @@ from machine import Pin
 from time import sleep
 import uasyncio
 
+from pauchok import Pauchok
 
 class Plugin:
-
     change_flag = False
 
-    def __init__(self, *, config_map, **kwargs):
-        self.topic = config_map["object"] + "/" + kwargs.get("channel", kwargs.get("module")) + "/" + config_map["uid"]
-        self.mqtt = config_map["mqtt"]
+    def __init__(self, **kwargs):
+        self.topic = Pauchok.mqtt.object + "/" + kwargs.get("channel", kwargs.get("module")) + "/" + Pauchok.mqtt.uniqid
+        self.mqtt = Pauchok.mqtt
         Relay.sender = self.mqtt
-        self.mqtt.subscribe(self.topic + "/#", self.handle_message)
         self.relays = {}
         self.init_relays(kwargs.get("relays", {}))
 
@@ -19,16 +18,12 @@ class Plugin:
         for rel in relays:
             button = False
             led = False
-
             if 'button' in rel:
                 button = int(rel['button'])
-
             if 'led' in rel:
                 led = int(rel['led'])
-
-            r = Relay(int(rel['pin']), rel['name'], int(rel['level']), button, led)
+            r = Relay(int(rel['pin']), self.topic + '/' + rel['name'], int(rel['level']), button, led)
             r.check(0)
-            r.topic = self.topic + '/' + r.name
             self.relays.update({r.topic: r})
 
     def handle_message(self, topic, msg):
@@ -46,18 +41,17 @@ class Plugin:
                     relay.update_state()
 
     async def run(self):
+        self.mqtt.subscribe(self.topic + "/#", self.handle_message)
         print('Waiting for message in topic %s...' % self.topic)
         while 1:
             self.update_states()
             self.mqtt.check_msg()
             await uasyncio.sleep(0.1)
 
-
 class Relay:
-
     sender = None
 
-    def __init__(self, pin, name, level, button, led=None):
+    def __init__(self, pin, topic, level, button, led=None):
         self.pin = Pin(pin, Pin.OUT)
         if led:
             self.led = Pin(led, Pin.OUT)
@@ -70,8 +64,7 @@ class Relay:
             self.button = False
         self.ON = int(level)
         self.OFF = abs(self.ON-1)
-        self.name = name
-        self.topic = None
+        self.topic = topic
         self.change_flag = False
         self.blocking = False
 
@@ -90,7 +83,6 @@ class Relay:
             self.blocking = True
         elif self.button.value() == 1:
             if self.blocking:
-                # self.pin.value(abs(self.pin.value() - 1))
                 if self.pin.value() == self.ON:
                     self.pin.value(self.OFF)
                 elif self.pin.value() == self.OFF:
