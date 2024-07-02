@@ -5,7 +5,7 @@
             "channel": "switch",
             "pin": 5,
             "led": 15,
-            "button": null,
+            "button": 1,
             "level": 1
         }
       ],

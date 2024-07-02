@@ -5,10 +5,12 @@ from time import sleep
 from time import ticks_ms
 from time import ticks_diff
 
+from pauchok import Pauchok
+
 
 class Plugin:
 
-    def __init__(self, *, config_map, **kwargs):
+    def __init__(self, **kwargs):
         self.pin = Pin(kwargs.get('pin', 12), Pin.OUT)
         self.led = Pin(kwargs.get('led', 13), Pin.OUT)
         if kwargs.get('button') is not None:
@@ -22,8 +24,8 @@ class Plugin:
         self.OFF = abs(self.ON-1)
         self.start = 0
 
-        self.mqtt = config_map["mqtt"]
-        self.topic = config_map["object"] + "/" + kwargs.get("channel", kwargs.get("module")) + "/" + config_map["uid"]
+        self.mqtt = Pauchok.mqtt
+        self.topic = self.mqtt.object + "/" + kwargs.get("channel", kwargs.get("module")) + "/" + self.mqtt.uniqid
         self.mqtt.subscribe(self.topic, sub_cb=self.callback)
 
     def set_broker(self, mqtt, topic):
