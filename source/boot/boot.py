@@ -4,7 +4,7 @@ import uasyncio
 import gc
 import network
 
-import pauchok as pauchok
+import pauchok
 
 
 def start_repl():
