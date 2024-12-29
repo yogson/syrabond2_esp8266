@@ -7,11 +7,11 @@ from time import ticks_diff
 
 class Plugin:
 
-    def __init__(self, mqtt=None, topic=None, **kwargs):
-        self.pin = Pin(kwargs.get('pin', 12), Pin.OUT)
-        self.led = Pin(kwargs.get('led', 13), Pin.OUT)
+    def __init__(self, mqtt, topic=None, **kwargs):
+        self.pin = Pin(int(kwargs.get('pin', 12)), Pin.OUT)
+        self.led = Pin(int(kwargs.get('led', 13)), Pin.OUT)
         if kwargs.get('button') is not None:
-            self.button = Pin(kwargs.get('button'), Pin.IN)
+            self.button = Pin(int(kwargs.get('button')), Pin.IN)
             self.button.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.push)
             self.blocking = False
         else:
@@ -20,15 +20,8 @@ class Plugin:
         self.ON = int(kwargs.get('level', 1))
         self.OFF = abs(self.ON-1)
         self.start = 0
-
-        self.mqtt = None
-        self.topic = None
-        if mqtt and topic:
-            self.set_broker(mqtt, topic)
-
-    def set_broker(self, mqtt, topic):
         self.mqtt = mqtt
-        self.topic = topic
+        self.topic = topic or mqtt.object + "/switch/" + mqtt.uniqid
         self.mqtt.subscribe(self.topic, sub_cb=self.callback)
     
     def callback(self, topic, msg):

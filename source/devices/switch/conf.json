@@ -1,16 +1,13 @@
 {
-      "mqtt": {
-        "channel": "switch"
-              },
-      "plugins": [
-        {
-            "module": "switch",
-            "pin": 5,
-            "led": 15,
-            "button": null,
-            "level": 1
-        }
-      ],
-  "led": 15
-
+	"debug": false,
+	"mqtt": {
+          "keepalive": "60",
+          "object": "jikia",
+          "pass": "FvmYvzW8648ZMPm8",
+          "server": "mqtt.psycotro.pics",
+          "user": "dev"
+ 	}, 
+	"sleep_time": "1", 
+	"inited": "1", 
+	"plugins": [{"led": 13, "pin": 12, "level": "1", "button": "0", "module": "switch"}]
 }

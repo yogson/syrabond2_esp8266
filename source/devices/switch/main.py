@@ -1,12 +1,12 @@
 import machine
 import uasyncio
 
-from base import mqttsender, debug, plugins, topic, loop
+from base import mqttsender, debug, plugins, loop
 
 
 async def main():
     if 'switch' in plugins:
-        plugins['switch'].set_broker(mqttsender, topic)
+        plugins['switch'].set_broker(mqttsender, plugins['switch'].topic)
         if not debug:
             try:
                 while True:

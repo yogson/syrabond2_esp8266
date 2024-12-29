@@ -3,9 +3,8 @@ import ubinascii
 import uasyncio
 import gc
 import network
-from time import sleep
 
-import sdk.pauchok as pauchok
+import pauchok as pauchok
 
 
 def start_repl():
@@ -92,12 +91,13 @@ if config.get('led') is not None:
     led.value(OFF)
 
 if config.get("ssid") and config.get("pass") and not config.get("network"):
+    config["network"] = {}
     config["network"]["ssid"] = config.pop("ssid")
     config["network"]["pass"] = config.pop("pass")
 
 connect(config.get("network", {}).get("ssid", "wifi"), config.get("network", {}).get("pass", ""))
 
-if not config.get('repl') is False:
+if config.get('repl') is not False:
     print('Starting webrepl...')
     start_repl()
 

@@ -11,6 +11,7 @@ class Mqttsender:
         self.server = mqtt['server']
         self.user = mqtt['user']
         self.password = mqtt['pass']
+        self.object = mqtt['object']
         self.uniqid = uniqid
         self.topic_ping = mqtt['object'] + '/globalping'
         self.topic_lastwill = mqtt['object'] + '/status/' + self.uniqid
@@ -136,6 +137,7 @@ class Mqttsender:
                 print("Couldn't update config ", command)
 
     def ping_broker(self):
+        print("Pinging broker at", self.server)
         self.c.ping()
 
     async def heartbit(self):
