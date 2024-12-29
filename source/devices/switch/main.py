@@ -17,5 +17,8 @@ async def main():
             finally:
                 machine.reset()
 
-loop.create_task(main())
-
+try:
+    loop.create_task(main())
+    loop.run_forever()
+except Exception as e:
+    print(e)
