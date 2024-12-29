@@ -1,7 +1,7 @@
 import machine
 import ubinascii
+import uasyncio
 import gc
-from uos import urandom as rnd
 import network
 from time import sleep
 
@@ -13,7 +13,7 @@ def start_repl():
     webrepl.start()
 
 
-def start_management_interface():
+async def start_management_interface():
     ap_if = network.WLAN(network.AP_IF)
     sta = network.WLAN(network.STA_IF)
     uid = ubinascii.hexlify(machine.unique_id()).decode()
@@ -35,19 +35,19 @@ def start_management_interface():
             if conn_flag:
                 if led:
                     led.value(OFF)
-                sleep(0.1)
+                await uasyncio.sleep(0.1)
                 if led:
                     led.value(ON)
             else:
                 if led:
                     led.value(OFF)
-                sleep(1.5)
+                await uasyncio.sleep(1.5)
                 if led:
                     led.value(ON)
-                sleep(0.5)
+                await uasyncio.sleep(0.5)
 
 
-def connect(ssid, password):
+async def connect(ssid, password):
     sta_if = network.WLAN(network.STA_IF)
     ap_if = network.WLAN(network.AP_IF)
     ap_if.active(False)
@@ -60,16 +60,16 @@ def connect(ssid, password):
             if t < 60:
                 if led:
                     led.value(OFF)
-                sleep(0.5)
+                await uasyncio.sleep(0.5)
                 if led:
                     led.value(ON)
-                sleep(0.5)
+                await uasyncio.sleep(0.5)
                 t += 1
 
             else:
                 if not ap_if.active():
                     print('Could not connect to network. Setting up soft AP and keep trying...')
-                    start_management_interface()
+                    await start_management_interface()
 
     print('Connected:', sta_if.ifconfig())
     ap_if.active(False)
@@ -97,8 +97,8 @@ if config.get("ssid") and config.get("pass") and not config.get("network"):
 
 connect(config.get("network", {}).get("ssid", "wifi"), config.get("network", {}).get("pass", ""))
 
-if config.get('repl'):
-    print('starting webrepl cuz configured...')
+if not config.get('repl') is False:
+    print('Starting webrepl...')
     start_repl()
 
 gc.collect()

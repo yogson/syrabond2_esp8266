@@ -18,7 +18,7 @@ class Http:
     def __init__(self, ip='0.0.0.0', port=80):
         print('Starting web server')
         self.server = socket.socket()
-        self.server.setblocking(0)
+        self.server.setblocking(False)
         self.server.bind((ip, port))
         self.server.listen(3)
         self.sys_version = "Micropython/" + sys.version.split()[0]

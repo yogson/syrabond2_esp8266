@@ -1,6 +1,7 @@
 import ubinascii
 import network
 import machine
+import uasyncio
 
 import pauchok
 
@@ -32,6 +33,10 @@ mqttsender.send(mqttsender.topic_lastwill, str(
     {'uid': uid, 'channel': mqtt.get('channel', 'resource'), "ip": ip, 'topic': topic}), retain=False)
 
 del mqtt
+
+loop = uasyncio.get_event_loop()
+loop.create_task(mqttsender.heartbit())
+loop.create_task(pauchok.reboot_after(minutes=config.get("reboot_after", 5)))
 
 plugins = {}
 

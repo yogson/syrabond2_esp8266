@@ -1,3 +1,4 @@
+import machine
 from umqtt.robust import MQTTClient
 import uasyncio
 import ujson as json
@@ -180,3 +181,8 @@ def write_config(filename, conf):
             f.write(json.dumps(conf))
     except (OSError, ValueError):
         print("Couldn't open config ", filename)
+
+
+async def reboot_after(minutes: 300):
+    await uasyncio.sleep(minutes)
+    machine.reset()
