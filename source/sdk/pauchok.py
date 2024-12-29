@@ -184,5 +184,7 @@ def write_config(filename, conf):
 
 
 async def reboot_after(minutes: 300):
+    print("The device will be rebooted by regular reboot job at", minutes, "minutes.")
     await uasyncio.sleep(minutes)
+    print("Regular reboot time has arrived after", minutes, "minutes")
     machine.reset()

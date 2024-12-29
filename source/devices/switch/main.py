@@ -1,18 +1,21 @@
 import machine
+import uasyncio
 
-from sdk.base import mqttsender, debug, plugins, topic
+from base import mqttsender, debug, plugins, topic, loop
 
 
-if 'switch' in plugins:
+async def main():
+    if 'switch' in plugins:
+        plugins['switch'].set_broker(mqttsender, topic)
+        if not debug:
+            try:
+                while True:
+                    plugins['switch'].update_site()
+                    print('Waiting for message in topic %s...' % plugins['switch'].topic)
+                    mqttsender.c.check_msg()
+                    await uasyncio.sleep(1)
+            finally:
+                machine.reset()
 
-    plugins['switch'].set_broker(mqttsender, topic)
+loop.create_task(main())
 
-    if not debug:
-        try:
-            while True:
-                plugins['switch'].update_site()
-                print('Waiting for message in topic %s...' % plugins['switch'].topic)
-                mqttsender.c.wait_msg()
-
-        finally:
-            machine.reset()
