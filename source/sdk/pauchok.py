@@ -43,28 +43,6 @@ class LED:
         if led:
             led.value(abs(self.LEVEL - 1))
 
-    async def _blink(self):
-        while self._blinking:
-            self.on()
-            await uasyncio.sleep(0.5)
-            self.off()
-            await uasyncio.sleep(0.5)
-
-    def start_blinking(self):
-        self._blinking = True
-        if self._blink_task is None or self._blink_task.done():
-            self._blink_task = uasyncio.get_event_loop().create_task(self._blink())
-
-    def stop_blinking(self):
-        self._blinking = False
-        if self._blink_task and not self._blink_task.done():
-            self._blink_task.cancel()
-            self._blink_task = None
-
-    def cleanup(self):
-        self.stop_blinking()
-        self.off()
-
 class WiFiNetworkManager:
 
     led = LED()
