@@ -76,11 +76,6 @@ def connect(ssid, password):
     if led:
         led.value(ON)
 
-
-t = int.from_bytes(rnd(1), 'little') // 25 + 1
-print('Waiting ' + str(t) + ' sec.')  # wait randomized time to balance the load
-sleep(t)
-
 led = None
 config = pauchok.get_config("global.json", "conf.json", "network.json")
 
