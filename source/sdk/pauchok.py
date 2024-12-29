@@ -1,4 +1,5 @@
 from umqtt.robust import MQTTClient
+import uasyncio
 import ujson as json
 from time import sleep
 
@@ -132,6 +133,14 @@ class Mqttsender:
                 update_conf(conf_data)
             except:
                 print("Couldn't update config ", command)
+
+    def ping_broker(self):
+        self.c.ping()
+
+    async def heartbit(self):
+        while True:
+            self.ping_broker()
+            await uasyncio.sleep(self.keepalive // 3)
 
 
 def update_conf(conf_update: dict):
